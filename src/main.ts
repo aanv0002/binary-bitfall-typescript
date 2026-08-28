@@ -46,10 +46,12 @@ const Constants = {
 // State processing
 type State = Readonly<{
     gameEnd: boolean;
+    bits: ReadonlyArray<number>;
 }>;
 
 const initialState: State = {
     gameEnd: false,
+    bits: [0,0,0,0,0,0,0,0],
 };
 
 /**
@@ -174,6 +176,18 @@ const render = (): ((s: State) => void) => {
 export const state$ = (): Observable<State> => {
     /** Determines the rate of time steps */
     const tick$ = interval(Constants.TICK_RATE_MS);
+
+    const keys = ["KeyZ", "KeyX", "KeyC", "KeyV", "KeyB", "KeyN", "KeyM", "Comma"];
+
+    const key$ = fromEvent<KeyboardEvent>(document, "keydown").pipe(
+        filter((e) => !e.repeat && keys.includes(e.code)),
+        map((e) => (s: State) => {
+            const i = keys.indexOf(e.code);
+            const newBits = [...s.bits];
+            newBits[i] = newBits[i] === 0 ? 1 : 0;
+            return { ...s, bits: newBits };
+        })
+    );
 
     return tick$.pipe(scan((s: State) => ({ gameEnd: false }), initialState));
 };

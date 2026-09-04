@@ -44,14 +44,30 @@ const Constants = {
 } as const;
 
 // State processing
-type State = Readonly<{
-    gameEnd: boolean;
-    bits: ReadonlyArray<number>;
+export type TargetNumber = Readonly<{
+     id: number;        // Unique Identifier for DOM tracking
+     value: number;     // The target numeric value
+     hexvalue: string;  // Base-16 display string
+     x: number;         // Horizontal  center position on canvas
+     y: number;         // Vertical position on canvas
 }>;
 
-const initialState: State = {
-    gameEnd: false,
+export type State = Readonly<{
+    bits: ReadonlyArray<number>;
+    targets: ReadonlyArray<TargetNumber>;
+    score: number;
+    gameEnd: boolean
+
+}>;
+
+/**
+ * InitialState which resets and starts the game.
+ */
+export const initialState: State = {
     bits: [0,0,0,0,0,0,0,0],
+    targets: [],
+    score: 0,
+    gameEnd: false,
 };
 
 /**

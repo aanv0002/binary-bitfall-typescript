@@ -12,6 +12,7 @@
  * Document your code!
  */
 
+import { StatementSync } from "node:sqlite";
 import "./style.css";
 
 import {
@@ -22,6 +23,7 @@ import {
     interval,
     map,
     scan,
+    merge,
     switchMap,
     take,
 } from "rxjs";
@@ -141,6 +143,7 @@ const render = (): ((s: State) => void) => {
      * @param s Current state
      */
     return (s: State) => {
+        svg.innerHTML = "";
         // Draw a static falling target as a demonstration
         const target = createSvgElement(svg.namespaceURI, "rect", {
             x: `${Viewport.CANVAS_WIDTH / 2 - Target.WIDTH / 2}`,
@@ -191,7 +194,9 @@ const render = (): ((s: State) => void) => {
 
 export const state$ = (): Observable<State> => {
     /** Determines the rate of time steps */
-    const tick$ = interval(Constants.TICK_RATE_MS);
+    const tick$ = interval(Constants.TICK_RATE_MS).pipe(
+        map(() => (s: State): State => tick(s))
+    );
 
     const keys = ["KeyZ", "KeyX", "KeyC", "KeyV", "KeyB", "KeyN", "KeyM", "Comma"];
 
@@ -205,7 +210,8 @@ export const state$ = (): Observable<State> => {
         })
     );
 
-    return tick$.pipe(scan((s: State) => ({ gameEnd: false }), initialState));
+    return merge(tick$, key$).pipe(
+        scan((s: State, action: (s: State) => State) => action(s), initialState));
 };
 
 // The following simply runs your main function on window load.  Make sure to leave it in place.

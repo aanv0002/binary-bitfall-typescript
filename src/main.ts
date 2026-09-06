@@ -208,11 +208,12 @@ const render = (): ((s: State) => void) => {
 
         const checkLine = createSvgElement(svg.namespaceURI, "line", {
             x1: "0",
-            y1: `${Viewport.CANVAS_HEIGHT - 60}`,
+            y1: `${Viewport.CANVAS_HEIGHT - 80}`,
             x2: `${Viewport.CANVAS_WIDTH}`,
-            y2: `${Viewport.CANVAS_HEIGHT - 60}`,
+            y2: `${Viewport.CANVAS_HEIGHT - 80}`,
             stroke: "red",
             "stroke-dasharray": "4",
+            "stroke-width": "2",
         });
         svg.appendChild(checkLine);
 

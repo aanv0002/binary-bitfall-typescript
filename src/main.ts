@@ -41,7 +41,7 @@ const Target = {
 
 const Constants = {
     DIGIT_COUNT: 8,
-    TICK_RATE_MS: 500, // Might need to change this!
+    TICK_RATE_MS: 300,
 } as const;
 
 // State processing
@@ -116,6 +116,8 @@ const tick = (s: State): State => {
         .map(t => ({ ...t, y: t.y + TARGET_SPEED }))
         .filter(t => t.value !== currentBitValue);
 
+    const clearedCount = s.targets.length - movedTargets.length;
+
     const checkLineY = Viewport.CANVAS_HEIGHT - 60;
     const hitCheckLine = movedTargets.some(t => t.y >= checkLineY);
 
@@ -124,17 +126,18 @@ const tick = (s: State): State => {
     }
 
     const shouldSpawn =
+        clearedCount > 0 ||
         movedTargets.length === 0 ||
-        (movedTargets.length < 3 && Math.random() < 0.25);
+        (movedTargets.length < 5 && Math.random() < 0.35);
 
     const updatedTargets = shouldSpawn
-        ? [...movedTargets, createTarget(Date.now())]
+        ? [...movedTargets, createTarget(Date.now() + Math.random())]
         : movedTargets;
 
     return {
         ...s,
         targets: updatedTargets,
-        score: s.score + (s.targets.length - movedTargets.length) * 10,
+        score: s.score + clearedCount * 10,
     };
 };
 

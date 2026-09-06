@@ -280,13 +280,69 @@ const render = (): ((s: State) => void) => {
         if (infoContainer && !document.querySelector("#controlsSvg")) {
             const controlsSvg = createSvgElement(svg.namespaceURI, "svg", {
                 id: "controlsSvg",
-                width: "100",
+                width: "170",
                 height: "36",
                 style: "margin-left: 10px; vertical-align: middle;",
             });
 
+            const pauseButton = createSvgElement(svg.namespaceURI, "g", {
+                "data-action": "toggle-pause",
+                cursor: "pointer",
+            });
+
+            const pauseBg = createSvgElement(svg.namespaceURI, "rect", {
+                width: "36",
+                height: "36",
+                rx: "6",
+                fill: "#e0e0e0",
+                stroke: "#333",
+                "stroke-width": "2",
+            });
+
+            const pauseText = createSvgElement(svg.namespaceURI, "text", {
+                id: "pauseBtnText",
+                x: "18",
+                y: "24",
+                "text-anchor": "middle",
+                "font-size": "16",
+                "font-weight": "bold",
+                fill: "#333",
+                "pointer-events": "none",
+            });
+
+            pauseText.textContent = "❚❚";
+            pauseButton.appendChild(pauseBg);
+            pauseButton.appendChild(pauseText);
+
+            const restartButton = createSvgElement(svg.namespaceURI, "g", {
+                transform: "translate(46, 0)",
+                "data-action": "restart",
+                cursor: "pointer",
+            });
+            const restartBg = createSvgElement(svg.namespaceURI, "rect", {
+                width: "36",
+                height: "36",
+                rx: "6",
+                fill: "#e0e0e0",
+                stroke: "#333",
+                "stroke-width": "2",
+            });
+            const restartText = createSvgElement(svg.namespaceURI, "text", {
+                x: "18",
+                y: "25",
+                "text-anchor": "middle",
+                "font-size": "20",
+                "font-weight": "bold",
+                fill: "#333",
+                "pointer-events": "none",
+            });
+
+            restartText.textContent = "↻";
+            restartButton.appendChild(restartBg);
+            restartButton.appendChild(restartText);
+
             const hexGroup = createSvgElement(svg.namespaceURI, "g", {
-                transform: "translate(16, 0)",
+                transform: "translate(92, 0)",
             });
             const hexBg = createSvgElement(svg.namespaceURI, "rect", {
                 width: "70",
@@ -309,6 +365,8 @@ const render = (): ((s: State) => void) => {
             });
             hexGroup.appendChild(hexBg);
             hexGroup.appendChild(hexText);
+            controlsSvg.appendChild(pauseButton);
+            controlsSvg.appendChild(restartButton);
             controlsSvg.appendChild(hexGroup);
             infoContainer.appendChild(controlsSvg);
         }

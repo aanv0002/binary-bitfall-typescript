@@ -450,7 +450,36 @@ export const state$ = (): Observable<State> => {
         }),
     );
 
-    return merge(tick$, key$).pipe(
+    const click$: Observable<Action> = fromEvent<MouseEvent>(
+        document,
+        "click",
+    ).pipe(
+        map(e => e.target as SVGElement | null),
+        map(target => {
+            const bitElem = target?.closest("[data-bitindex]");
+            const actionElem = target?.closest("[data-action]");
+
+            return (s: State): State => {
+                if (actionElem) {
+                    const action = actionElem.getAttribute("data-action");
+                    if (action === "toggle-pause")
+                        return { ...s, isPaused: !s.isPaused };
+                    if (action === "restart") return { ...initialState };
+                }
+
+                if (bitElem && !s.gameEnd && !s.isPaused) {
+                    const index = Number(bitElem.getAttribute("data-bitindex"));
+                    const newBits = [...s.bits];
+                    newBits[index] = newBits[index] === 0 ? 1 : 0;
+                    return { ...s, bits: newBits };
+                }
+
+                return s;
+            };
+        }),
+    );
+
+    return merge(tick$, key$, click$).pipe(
         scan((s: State, action: Action) => action(s), initialState),
         startWith(initialState),
     );

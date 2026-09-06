@@ -72,6 +72,8 @@ export const initialState: State = {
 
 /**
  * Creates a new target with a random binary-compatible value
+ * @param id Unique identifier generated for the target instance
+ * @returns A newly created TargetNumber object initialized at the top edge of the viewport
  */
 const createTarget = (id: number): TargetNumber => {
     const val = Math.floor(Math.random() * 256); // Random number between 0 and 255
@@ -86,6 +88,9 @@ const createTarget = (id: number): TargetNumber => {
     };
 };
 
+/**
+ * A state transition function that receives the current State and transforms it to a new State.
+ */
 type Action = (s: State) => State;
 
 /** Converts an array of 8 bits into its integer value */
@@ -93,6 +98,7 @@ const bitsToDecimal = (bits: ReadonlyArray<number>): number =>
     bits.reduce((acc, bit) => (acc << 1) | bit, 0);
 
 const TARGET_SPEED = 5;
+
 /**
  * Updates the state by proceeding with one time step.
  *
@@ -205,7 +211,6 @@ const render = (): ((s: State) => void) => {
         });
         svg.appendChild(checkLine);
 
-        // Draw a static falling target as a demonstration
         s.targets.forEach(target => {
             const rect = createSvgElement(svg.namespaceURI, "rect", {
                 x: `${target.x - Target.WIDTH / 2}`,
@@ -265,6 +270,7 @@ const render = (): ((s: State) => void) => {
             svg.appendChild(bitText);
         });
 
+        // Sync total score with the DOM
         const scoreElement = document.querySelector("#scoreText");
         if (scoreElement) {
             scoreElement.textContent = `${s.score}`;
@@ -306,13 +312,14 @@ const render = (): ((s: State) => void) => {
             controlsSvg.appendChild(hexGroup);
             infoContainer.appendChild(controlsSvg);
         }
-
+        // Convert current bit array to decimal and format as uppercase 2-digit Hexadecimal value
         const currentHexText = document.querySelector("#currentHexText");
         if (currentHexText) {
             const currentDec = bitsToDecimal(s.bits);
-            currentHexText.textContent = `0x${currentDec.toString(16).toUpperCase().padStart(2, "0")}`;
+            currentHexText.textContent = `${currentDec.toString(16).toUpperCase().padStart(2, "0")}`;
         }
 
+        // Render Game Over message on canvas when termination condition is reached
         if (s.gameEnd) {
             const gameOverText = createSvgElement(svg.namespaceURI, "text", {
                 x: `${Viewport.CANVAS_WIDTH / 2}`,

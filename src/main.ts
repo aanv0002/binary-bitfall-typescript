@@ -264,6 +264,20 @@ const render = (): ((s: State) => void) => {
             svg.appendChild(bitRect);
             svg.appendChild(bitText);
         });
+
+        if (s.gameEnd) {
+            const gameOverText = createSvgElement(svg.namespaceURI, "text", {
+                x: `${Viewport.CANVAS_WIDTH / 2}`,
+                y: `${Viewport.CANVAS_HEIGHT / 2}`,
+                "text-anchor": "middle",
+                "font-family": "sans-serif",
+                "font-size": "32",
+                "font-weight": "bold",
+                fill: "red",
+            });
+            gameOverText.textContent = "GAME OVER";
+            svg.appendChild(gameOverText);
+        }
     };
 };
 

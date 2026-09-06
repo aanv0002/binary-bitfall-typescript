@@ -1,5 +1,15 @@
 # Assignment 1
 
+## Advanced Features Implemented
+
+Dynamic Target Generation: Spawns falling targets at random horizontal positions, each initialized with a random 8-bit integer value (0–255) and its corresponding hexadecimal label.
+
+Live Hex & Score Readout: Converts the player's 8-bit state into a real-time hexadecimal display alongside a dynamic score tracker.
+
+Game Controls: Built-in SVG UI buttons allow players to toggle game pause state and restart the round.
+
+Interactive Mouse Click Controls: Supports direct user interaction with rendered SVG elements for toggling bit states and control buttons.
+
 ## Usage
 
 Setup (requires node.js):

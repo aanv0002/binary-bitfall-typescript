@@ -71,6 +71,28 @@ export const initialState: State = {
 };
 
 /**
+ * Creates a new target with a random binary-compatible value
+ */
+const createTarget = (id: number): TargetNumber => {
+    const val = Math.floor(Math.random() * 256); // Random number between 0 and 255
+    return {
+        id,
+        value: val,
+        hexvalue: val.toString(16).toUpperCase().padStart(2, "0"),
+        x:
+            Math.floor(Math.random() * (Viewport.CANVAS_WIDTH - Target.WIDTH)) +
+            Target.WIDTH / 2,
+        y: 0, // Start at the top of the canvas
+    };
+};
+
+type Action = (s: State) => State;
+
+/** Converts an array of 8 bits into its integer value */
+const bitsToDecimal = (bits: ReadonlyArray<number>): number =>
+    bits.reduce((acc, bit) => (acc << 1) | bit, 0);
+
+/**
  * Updates the state by proceeding with one time step.
  *
  * @param s Current state

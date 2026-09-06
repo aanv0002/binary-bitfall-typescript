@@ -1,15 +1,13 @@
 /**
- * Inside this file you will use the classes and functions from rx.js
- * to add visuals to the svg element in index.html, animate them, and make them interactive.
+ * DESIGN CHOICES OF THIS GAME
+ * Pure State Transitions: Game state is managed immutably through a stream of pure state-transformation
+ * functions (`Action = (s: State) => State`). Merging discrete input streams into a central `scan` pipeline
+ * ensures referential transparency and predictable state progression without global variables.
  *
- * Study and complete the tasks in observable exercises first to get ideas.
+ * 2. Unidirectional Data Flow: User events and timer intervals emit transition functions that compute the next state.
  *
- * Course Notes showing Asteroids in FRP: https://tgdwyer.github.io/asteroids/
- *
- * You will be marked on your functional programming style
- * as well as the functionality that you implement.
- *
- * Document your code!
+ * 3. Declarative Canvas Rendering: SVG elements are declaratively cleared and re-drawn based on the snapshot
+ * of the latest `State` object emitted by the core game stream.
  */
 import "./style.css";
 
@@ -189,6 +187,12 @@ const createSvgElement = (
     return elem;
 };
 
+/**
+ * Generates the primary DOM view-update function.
+ * Encapsulates all side effects within a returned closure `(s: State) => void`.
+ * The render process reads the state snapshot and reconstructs canvas visuals declarative-style,
+ * isolating DOM mutations entirely out of stream composition pipelines.
+ */
 const render = (): ((s: State) => void) => {
     const svg = document.querySelector("#svgCanvas") as SVGSVGElement;
 
@@ -196,13 +200,7 @@ const render = (): ((s: State) => void) => {
         "viewBox",
         `0 0 ${Viewport.CANVAS_WIDTH} ${Viewport.CANVAS_HEIGHT}`,
     );
-    /**
-     * Renders the current state to the canvas.
-     *
-     * In MVC terms, this updates the View using the Model.
-     *
-     * @param s Current state
-     */
+
     return (s: State) => {
         svg.innerHTML = "";
 
@@ -450,7 +448,7 @@ export const state$ = (): Observable<State> => {
         }),
     );
 
-    const click$: Observable<Action> = fromEvent<MouseEvent>(
+    const msclick$: Observable<Action> = fromEvent<MouseEvent>(
         document,
         "click",
     ).pipe(
@@ -479,7 +477,7 @@ export const state$ = (): Observable<State> => {
         }),
     );
 
-    return merge(tick$, key$, click$).pipe(
+    return merge(tick$, key$, msclick$).pipe(
         scan((s: State, action: Action) => action(s), initialState),
         startWith(initialState),
     );

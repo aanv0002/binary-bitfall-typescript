@@ -194,6 +194,17 @@ const render = (): ((s: State) => void) => {
      */
     return (s: State) => {
         svg.innerHTML = "";
+
+        const checkLine = createSvgElement(svg.namespaceURI, "line", {
+            x1: "0",
+            y1: `${Viewport.CANVAS_HEIGHT - 60}`,
+            x2: `${Viewport.CANVAS_WIDTH}`,
+            y2: `${Viewport.CANVAS_HEIGHT - 60}`,
+            stroke: "red",
+            "stroke-dasharray": "4",
+        });
+        svg.appendChild(checkLine);
+
         // Draw a static falling target as a demonstration
         s.targets.forEach(target => {
             const rect = createSvgElement(svg.namespaceURI, "rect", {

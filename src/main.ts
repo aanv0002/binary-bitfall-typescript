@@ -1,4 +1,10 @@
 /**
+ * AI STATEMENT
+ *
+ * AI was only used to firm my understanding of the concepts taught in this unit.
+ * I hereby confirm thatt none of the following code was generated using AI
+ *
+ *
  * DESIGN CHOICES OF THIS GAME
  * Pure State Transitions: Game state is managed immutably through a stream of pure state-transformation
  * functions (`Action = (s: State) => State`). Merging discrete input streams into a central `scan` pipeline

@@ -379,6 +379,11 @@ const render = (): ((s: State) => void) => {
             currentHexText.textContent = `${currentDec.toString(16).toUpperCase().padStart(2, "0")}`;
         }
 
+        const pauseBtnText = document.querySelector("#pauseBtnText");
+        if (pauseBtnText) {
+            pauseBtnText.textContent = s.isPaused ? "▶" : "❚❚";
+        }
+
         // Render Game Over message on canvas when termination condition is reached
         if (s.gameEnd) {
             const gameOverText = createSvgElement(svg.namespaceURI, "text", {

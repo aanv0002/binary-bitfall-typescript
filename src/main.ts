@@ -11,8 +11,6 @@
  *
  * Document your code!
  */
-
-import { StatementSync } from "node:sqlite";
 import "./style.css";
 
 import {
@@ -26,6 +24,7 @@ import {
     merge,
     switchMap,
     take,
+    startWith,
 } from "rxjs";
 
 /** Constants */
@@ -47,26 +46,25 @@ const Constants = {
 
 // State processing
 export type TargetNumber = Readonly<{
-     id: number;        // Unique Identifier for DOM tracking
-     value: number;     // The target numeric value
-     hexvalue: string;  // Base-16 display string
-     x: number;         // Horizontal  center position on canvas
-     y: number;         // Vertical position on canvas
+    id: number; // Unique Identifier for DOM tracking
+    value: number; // The target numeric value
+    hexvalue: string; // Base-16 display string
+    x: number; // Horizontal  center position on canvas
+    y: number; // Vertical position on canvas
 }>;
 
 export type State = Readonly<{
     bits: ReadonlyArray<number>;
     targets: ReadonlyArray<TargetNumber>;
     score: number;
-    gameEnd: boolean
-
+    gameEnd: boolean;
 }>;
 
 /**
  * InitialState which resets and starts the game.
  */
 export const initialState: State = {
-    bits: [0,0,0,0,0,0,0,0],
+    bits: [0, 0, 0, 0, 0, 0, 0, 0],
     targets: [],
     score: 0,
     gameEnd: false,
@@ -145,48 +143,62 @@ const render = (): ((s: State) => void) => {
     return (s: State) => {
         svg.innerHTML = "";
         // Draw a static falling target as a demonstration
-        const target = createSvgElement(svg.namespaceURI, "rect", {
-            x: `${Viewport.CANVAS_WIDTH / 2 - Target.WIDTH / 2}`,
-            y: "40",
-            width: `${Target.WIDTH}`,
-            height: `${Target.HEIGHT}`,
-            rx: "6",
-            fill: "white",
-            stroke: "black",
-            "stroke-width": "2",
+        s.targets.forEach(target => {
+            const rect = createSvgElement(svg.namespaceURI, "rect", {
+                x: `${target.x - Target.WIDTH / 2}`,
+                y: `${target.y}`,
+                width: `${Target.WIDTH}`,
+                height: `${Target.HEIGHT}`,
+                rx: "6",
+                fill: "white",
+                stroke: "black",
+                "stroke-width": "2",
+            });
+
+            const text = createSvgElement(svg.namespaceURI, "text", {
+                x: `${target.x}`,
+                y: `${target.y + Target.HEIGHT / 2 + 5}`,
+                "text-anchor": "middle",
+                "font-family": "monospace",
+                "font-weight": "bold",
+                fill: "black",
+            });
+            text.textContent = target.hexvalue;
+
+            svg.appendChild(rect);
+            svg.appendChild(text);
         });
-        const targetText = createSvgElement(svg.namespaceURI, "text", {
-            x: `${Viewport.CANVAS_WIDTH / 2}`,
-            y: `${40 + Target.HEIGHT / 2 + 8}`,
-            "text-anchor": "middle",
-            "font-family": "monospace",
-            fill: "black",
-        });
-        targetText.textContent = "13";
-        svg.appendChild(target);
-        svg.appendChild(targetText);
 
         // Draw the row of digit toggles as a demonstration
         const digitWidth = Viewport.CANVAS_WIDTH / Constants.DIGIT_COUNT;
-        Array.from({ length: Constants.DIGIT_COUNT }).forEach((_, i) => {
-            const bit = createSvgElement(svg.namespaceURI, "rect", {
+        s.bits.forEach((bitVal, i) => {
+            const bitRect = createSvgElement(svg.namespaceURI, "rect", {
                 x: `${i * digitWidth + 4}`,
                 y: `${Viewport.CANVAS_HEIGHT - 50}`,
                 width: `${digitWidth - 8}`,
                 height: "40",
-                fill: "#ef9a9a",
+                fill: bitVal === 1 ? "#81c784" : "#ef9a9a",
                 stroke: "black",
                 "stroke-width": "2",
+                "data-bitindex": `${i}`,
+                cursor: "pointer",
             });
+
             const bitText = createSvgElement(svg.namespaceURI, "text", {
                 x: `${i * digitWidth + digitWidth / 2}`,
                 y: `${Viewport.CANVAS_HEIGHT - 22}`,
                 "text-anchor": "middle",
                 "font-family": "monospace",
+                "font-size": "20",
+                "font-weight": "bold",
                 fill: "black",
+                "data-bitindex": `${i}`,
+                cursor: "pointer",
+                "pointer-events": "none",
             });
-            bitText.textContent = "0";
-            svg.appendChild(bit);
+            bitText.textContent = `${bitVal}`;
+
+            svg.appendChild(bitRect);
             svg.appendChild(bitText);
         });
     };
@@ -194,24 +206,39 @@ const render = (): ((s: State) => void) => {
 
 export const state$ = (): Observable<State> => {
     /** Determines the rate of time steps */
-    const tick$ = interval(Constants.TICK_RATE_MS).pipe(
-        map(() => (s: State): State => tick(s))
+    const tick$: Observable<Action> = interval(Constants.TICK_RATE_MS).pipe(
+        map(
+            () =>
+                (s: State): State =>
+                    tick(s),
+        ),
     );
 
-    const keys = ["KeyZ", "KeyX", "KeyC", "KeyV", "KeyB", "KeyN", "KeyM", "Comma"];
+    const keys = [
+        "KeyZ",
+        "KeyX",
+        "KeyC",
+        "KeyV",
+        "KeyB",
+        "KeyN",
+        "KeyM",
+        "Comma",
+    ];
 
     const key$ = fromEvent<KeyboardEvent>(document, "keydown").pipe(
-        filter((e) => !e.repeat && keys.includes(e.code)),
-        map((e) => (s: State) => {
+        filter(e => !e.repeat && keys.includes(e.code)),
+        map(e => (s: State) => {
             const i = keys.indexOf(e.code);
             const newBits = [...s.bits];
             newBits[i] = newBits[i] === 0 ? 1 : 0;
             return { ...s, bits: newBits };
-        })
+        }),
     );
 
     return merge(tick$, key$).pipe(
-        scan((s: State, action: (s: State) => State) => action(s), initialState));
+        scan((s: State, action: Action) => action(s), initialState),
+        startWith(initialState),
+    );
 };
 
 // The following simply runs your main function on window load.  Make sure to leave it in place.

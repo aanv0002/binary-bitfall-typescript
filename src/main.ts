@@ -92,13 +92,43 @@ type Action = (s: State) => State;
 const bitsToDecimal = (bits: ReadonlyArray<number>): number =>
     bits.reduce((acc, bit) => (acc << 1) | bit, 0);
 
+const TARGET_SPEED = 5;
 /**
  * Updates the state by proceeding with one time step.
  *
  * @param s Current state
  * @returns Updated state
  */
-const tick = (s: State) => s;
+const tick = (s: State): State => {
+    if (s.gameEnd) return s;
+
+    const currentBitValue = bitsToDecimal(s.bits);
+
+    const movedTargets = s.targets
+        .map(t => ({ ...t, y: t.y + TARGET_SPEED }))
+        .filter(t => t.value !== currentBitValue);
+
+    const checkLineY = Viewport.CANVAS_HEIGHT - 60;
+    const hitCheckLine = movedTargets.some(t => t.y >= checkLineY);
+
+    if (hitCheckLine) {
+        return { ...s, targets: movedTargets, gameEnd: true };
+    }
+
+    const shouldSpawn =
+        movedTargets.length === 0 ||
+        (movedTargets.length < 3 && Math.random() < 0.25);
+
+    const updatedTargets = shouldSpawn
+        ? [...movedTargets, createTarget(Date.now())]
+        : movedTargets;
+
+    return {
+        ...s,
+        targets: updatedTargets,
+        score: s.score + (s.targets.length - movedTargets.length) * 10,
+    };
+};
 
 // Rendering (side effects)
 

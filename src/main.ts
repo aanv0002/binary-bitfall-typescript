@@ -265,6 +265,54 @@ const render = (): ((s: State) => void) => {
             svg.appendChild(bitText);
         });
 
+        const scoreElement = document.querySelector("#scoreText");
+        if (scoreElement) {
+            scoreElement.textContent = `${s.score}`;
+        }
+
+        const infoContainer = document.querySelector("#info") as HTMLElement;
+        if (infoContainer && !document.querySelector("#controlsSvg")) {
+            const controlsSvg = createSvgElement(svg.namespaceURI, "svg", {
+                id: "controlsSvg",
+                width: "100",
+                height: "36",
+                style: "margin-left: 10px; vertical-align: middle;",
+            });
+
+            const hexGroup = createSvgElement(svg.namespaceURI, "g", {
+                transform: "translate(16, 0)",
+            });
+            const hexBg = createSvgElement(svg.namespaceURI, "rect", {
+                width: "70",
+                height: "36",
+                rx: "6",
+                fill: "#333",
+                stroke: "#111",
+                "stroke-width": "2",
+            });
+            const hexText = createSvgElement(svg.namespaceURI, "text", {
+                id: "currentHexText",
+                x: "35",
+                y: "24",
+                "text-anchor": "middle",
+                "font-family": "monospace",
+                "font-size": "18",
+                "font-weight": "bold",
+                fill: "#00FF66",
+                "pointer-events": "none",
+            });
+            hexGroup.appendChild(hexBg);
+            hexGroup.appendChild(hexText);
+            controlsSvg.appendChild(hexGroup);
+            infoContainer.appendChild(controlsSvg);
+        }
+
+        const currentHexText = document.querySelector("#currentHexText");
+        if (currentHexText) {
+            const currentDec = bitsToDecimal(s.bits);
+            currentHexText.textContent = `0x${currentDec.toString(16).toUpperCase().padStart(2, "0")}`;
+        }
+
         if (s.gameEnd) {
             const gameOverText = createSvgElement(svg.namespaceURI, "text", {
                 x: `${Viewport.CANVAS_WIDTH / 2}`,

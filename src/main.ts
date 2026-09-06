@@ -58,6 +58,7 @@ export type State = Readonly<{
     targets: ReadonlyArray<TargetNumber>;
     score: number;
     gameEnd: boolean;
+    isPaused: boolean;
 }>;
 
 /**
@@ -68,6 +69,7 @@ export const initialState: State = {
     targets: [],
     score: 0,
     gameEnd: false,
+    isPaused: false,
 };
 
 /**
@@ -106,7 +108,7 @@ const TARGET_SPEED = 5;
  * @returns Updated state
  */
 const tick = (s: State): State => {
-    if (s.gameEnd) return s;
+    if (s.gameEnd || s.isPaused) return s;
 
     const currentBitValue = bitsToDecimal(s.bits);
 
@@ -415,13 +417,27 @@ export const state$ = (): Observable<State> => {
         "Comma",
     ];
 
-    const key$ = fromEvent<KeyboardEvent>(document, "keydown").pipe(
-        filter(e => !e.repeat && keys.includes(e.code)),
-        map(e => (s: State) => {
-            const i = keys.indexOf(e.code);
-            const newBits = [...s.bits];
-            newBits[i] = newBits[i] === 0 ? 1 : 0;
-            return { ...s, bits: newBits };
+    const key$: Observable<Action> = fromEvent<KeyboardEvent>(
+        document,
+        "keydown",
+    ).pipe(
+        filter(e => !e.repeat),
+        map(e => (s: State): State => {
+            if (e.code === "KeyP") {
+                return { ...s, isPaused: !s.isPaused };
+            }
+            if (e.code === "KeyR") {
+                return { ...initialState };
+            }
+            if (s.gameEnd || s.isPaused) return s;
+
+            if (keys.includes(e.code)) {
+                const i = keys.indexOf(e.code);
+                const newBits = [...s.bits];
+                newBits[i] = newBits[i] === 0 ? 1 : 0;
+                return { ...s, bits: newBits };
+            }
+            return s;
         }),
     );
 
